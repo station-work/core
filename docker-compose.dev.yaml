@@ -27,22 +27,40 @@ services:
       - HASURA_GRAPHQL_ENABLED_LOG_TYPES=$HASURA_GRAPHQL_ENABLED_LOG_TYPES
       ## uncomment next line to set an admin secret
       - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
-      - DATA_ARM_APP_KEY=$DATA_ARM_APP_KEY
 
   zarya:
-    build: ./zarya/
+    build:
+      context: ./zarya
+      dockerfile: Dockerfile
+      args:
+        - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
+        - ENCRYPTION_KEY=$ENCRYPTION_KEY
+        - HASURA_APP_URL=$HASURA_APP_URL
     ports:
     - "3000:3000"
     volumes:
     - ./zarya:/app
     - ./error.log:/usr/src/app/error.log
-    env_file: zarya/.env
-    environment: 
-      - HASURA_SECRET=$HASURA_SECRET
+    env_file: .env
+    environment:
+      - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
       - ENCRYPTION_KEY=$ENCRYPTION_KEY
-    links:
-      - hasura
+      - HASURA_APP_URL=$HASURA_APP_URL
+    depends_on:
+      - 'hasura'
+  # elasticsearch:
+  #   container_name: elasticsearch
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.11.1
+  #   environment:
+  #     - node.name=es01
+  #     - discovery.type=single-node
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   volumes:
+  #     -  db_data:/usr/share/elasticsearch/data
+  #   ports:
+  #     - "9200:9200"       
 
 volumes:
   db_data:
+    driver: local
 
