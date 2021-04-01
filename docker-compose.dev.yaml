@@ -65,8 +65,6 @@ services:
       discovery.type: single-node
       # Force publishing on the 'elk' overlay.
       network.publish_host: _eth0_
-    networks:
-      - elk
     deploy:
       mode: replicated
       replicas: 1
@@ -84,8 +82,6 @@ services:
         target: /usr/share/logstash/pipeline/logstash.conf
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
-    networks:
-      - elk
     deploy:
       mode: replicated
       replicas: 1
@@ -97,14 +93,29 @@ services:
     configs:
       - source: kibana_config
         target: /usr/share/kibana/config/kibana.yml
-    networks:
-      - elk
     deploy:
       mode: replicated
       replicas: 1
 
-configs:
+  filebeat:
+    hostname: filebeat
+    image: docker.elastic.co/beats/filebeat:7.12.0
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+    configs:
+      - source: filebeat_config
+        target: /usr/share/filebeat/config/filebeat.yml
+    volumes:
+      # needed to persist filebeat tracking data :
+     - "filebeat_data:/usr/share/filebeat/data:rw"
+      # needed to access all docker logs (read only) :
+     - "/var/lib/docker/containers:/usr/share/dockerlogs/data:ro"
+      # needed to access additional informations about containers
+     - "/var/run/docker.sock:/var/run/docker.sock"
 
+configs:
   elastic_config:
     file: ./devops/elasticsearch/config/elasticsearch.yml
   logstash_config:
@@ -113,12 +124,12 @@ configs:
     file: ./devops/logstash/pipeline/logstash.conf
   kibana_config:
     file: ./devops/kibana/config/kibana.yml
+  filebeat_config:
+    file: ./devops/filebeat/config/filebeat.yml
 
 volumes:
   db_data:
     driver: local
   elasticsearch:
-
-networks:
-  elk:
-    driver: bridge
+    driver: local
+  filebeat_data:
