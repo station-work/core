@@ -13,7 +13,7 @@ services:
   hasura:
     image: hasura/graphql-engine:v2.0.0-alpha.5
     ports:
-    - "8080:8080"
+    - "7000:8080"
     depends_on:
     - "postgres"
     restart: always
@@ -37,7 +37,7 @@ services:
         - ENCRYPTION_KEY=$ENCRYPTION_KEY
         - HASURA_APP_URL=$HASURA_APP_URL
     ports:
-    - "3000:3000"
+    - "8000:3000"
     volumes:
     - ./zarya:/app
     - ./error.log:/usr/src/app/error.log
@@ -49,6 +49,93 @@ services:
     depends_on:
       - 'hasura'
 
+  astronaut:
+    ports:
+    - "3000:3000"
+    depends_on:
+      - 'hasura'
+    env_file: .env
+    volumes:
+      - ./astronaut:/usr/src/app/astronaut
+      - /usr/src/app/astronaut/node_modules
+    build:
+      context: ./astronaut
+      dockerfile: Dockerfile
+      args:
+        - DISCORD_URL=$DISCORD_URL
+        - BOT_NAME=$BOT_NAME
+        - BOT_IMAGE_URL=$BOT_IMAGE_URL
+    environment:
+      - BOT_NAME=$BOT_NAME
+      - DISCORD_URL=$DISCORD_URL
+      - BOT_IMAGE_URL=$BOT_IMAGE_URL
+  owncloud:
+    image: owncloud/server:10.7
+    restart: always
+    ports:
+      - 9000:8080
+    depends_on:
+      - db
+      - redis
+    environment:
+      - OWNCLOUD_DOMAIN=localhost:8080
+      - OWNCLOUD_DB_TYPE=mysql
+      - OWNCLOUD_DB_NAME=owncloud
+      - OWNCLOUD_DB_USERNAME=owncloud
+      - OWNCLOUD_DB_PASSWORD=owncloud
+      - OWNCLOUD_DB_HOST=db
+      - OWNCLOUD_ADMIN_USERNAME=admin
+      - OWNCLOUD_ADMIN_PASSWORD=admin
+      - OWNCLOUD_MYSQL_UTF8MB4=true
+      - OWNCLOUD_REDIS_ENABLED=true
+      - OWNCLOUD_REDIS_HOST=redis
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - files:/mnt/data
+
+  db:
+    image: webhippie/mariadb:latest
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=owncloud
+      - MARIADB_USERNAME=owncloud
+      - MARIADB_PASSWORD=owncloud
+      - MARIADB_DATABASE=owncloud
+      - MARIADB_MAX_ALLOWED_PACKET=128M
+      - MARIADB_INNODB_LOG_FILE_SIZE=64M
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - mysql:/var/lib/mysql
+      - backup:/var/lib/backup
+
+  redis:
+    image: webhippie/redis:latest
+    restart: always
+    environment:
+      - REDIS_DATABASES=1
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - redis:/var/lib/redis
 volumes:
   db_data:
+    driver: local
+  files:
+    driver: local
+  mysql:
+    driver: local
+  backup:
+    driver: local
+  redis:
     driver: local

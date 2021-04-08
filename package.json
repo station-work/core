@@ -1,0 +1,11 @@
+{
+  "name": "station-work",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:station-work/core.git",
+  "author": "Enieber Cunha <eniebercunha@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "docker-compose up"
+  }
+}
