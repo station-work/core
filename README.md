@@ -36,6 +36,8 @@ To develop is necessary follow this staps:
 - to access front end: [Access Astronault](http://localhost:3000)
 - to access [ownCloud with username and password admin](http://localhost:9000)
 
+![Screenshot bot message](https://raw.githubusercontent.com/station-work/core/main/bot.png "Screenshot bot message")
+
 ## License
 
 Copyright © 2021 [Fast Think](https://github.com/fast-think)
