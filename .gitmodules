@@ -1,0 +1,3 @@
+[submodule "astronalt"]
+	path = astronalt
+	url = git@github.com:station-work/astronalt.git
