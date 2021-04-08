@@ -19,10 +19,22 @@ To upload a file, manager backups and help sync files is necessary to create Fue
 - [x] create inital structure to station-work with git submodules
 - [x] run in docker all initla structure
 - [x] add storage files server (ownCloud)
+- [x] send message to discord by bot message
 - [ ] add security Space Suit with [KeyCloak](https://www.keycloak.org/)
 - [ ] send files to Fuel project with ownCloud
 - [ ] create routines to backup with Fuel project
+- [ ] send discord message when has any problem with some process
 
+## To Develop
+
+To develop is necessary follow this staps:
+
+- clone repository with all submodules `git clone --recursive https://github.com/station-work/core.git station-work`
+- enter in project folder `cd station-work`
+- create .env file with valid values. To help this process has the file .env.sample.
+- run all with docker-compose `docker-compose up`
+- to access front end: [Access Astronault](http://localhost:3000)
+- to access [ownCloud with username and password admin](http://localhost:9000)
 
 ## License
 
