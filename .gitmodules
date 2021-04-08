@@ -1,3 +1,6 @@
 [submodule "astronalt"]
 	path = astronalt
 	url = git@github.com:station-work/astronalt.git
+[submodule "zarya"]
+	path = zarya
+	url = git@github.com:station-work/zarya.git
