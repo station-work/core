@@ -4,11 +4,11 @@ This project is to create the station work in the home office with efficiency, m
 
 ## Architecture and tools
 
-To create this project the initial structure is running in hasura backend in github station-work/core.
+To create this project the initial structure is running in hasura backend in [station-work/core.](https://github.com/station-work/core)
 
-The hasura has extencible backend with actions, and to create and manager this actions has the station-work/zarya.
+The hasura has extencible backend with actions, and to create and manager this actions has the [station-work/zarya.](https://github.com/station-work/zarya)
 
-To create front-end communication with Hasura and help user to create yours proccess Station Work has the station-work/astronaut.
+To create front-end communication with Hasura and help user to create yours proccess Station Work has the [station-work/astronaut.](https://github.com/station-work/astronaut)
 
 To manage security is necessary to create a Space Suit that uses the OAuth2 pattern to allow communication with security between internal application and external application with Hasura.
 
