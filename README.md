@@ -27,7 +27,7 @@ To upload a file, manager backups and help sync files is necessary to create Fue
 
 ## To Develop
 
-To develop is necessary follow this staps:
+To develop is necessary follow this steps:
 
 - clone repository with all submodules `git clone --recursive https://github.com/station-work/core.git station-work`
 - enter in project folder `cd station-work`
