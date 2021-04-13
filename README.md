@@ -32,7 +32,7 @@ To develop is necessary follow this steps:
 - clone repository with all submodules `git clone --recursive https://github.com/station-work/core.git station-work`
 - enter in project folder `cd station-work`
 - create .env file with valid values. To help this process has the file .env.sample.
-- run all with docker-compose `docker-compose up`
+- run all with docker-compose `docker-compose -f docker-compose.dev.yaml up`
 - to access front end: [Access Astronault](http://localhost:3000)
 - to access [ownCloud with username and password admin](http://localhost:9000)
 

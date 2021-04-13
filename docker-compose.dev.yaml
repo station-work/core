@@ -1,6 +1,6 @@
 version: '3.6'
+
 services:
-  
   postgres:
     image: postgres:12
     restart: always
@@ -31,16 +31,16 @@ services:
   zarya:
     build:
       context: ./zarya
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
         - ENCRYPTION_KEY=$ENCRYPTION_KEY
         - HASURA_APP_URL=$HASURA_APP_URL
     ports:
-    - "8000:3000"
+      - "8000:3000"
     volumes:
-    - ./zarya:/app
-    - ./error.log:/usr/src/app/error.log
+      - ./zarya:/usr/src/app
+      - ./error.log:/usr/src/app/error.log
     env_file: .env
     environment:
       - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
@@ -51,20 +51,21 @@ services:
 
   astronaut:
     ports:
-    - "3000:3000"
+      - "3000:3000"
     depends_on:
       - 'hasura'
     env_file: .env
-    volumes:
-      - ./astronaut:/usr/src/app/astronaut
-      - /usr/src/app/astronaut/node_modules
     build:
       context: ./astronaut
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         - DISCORD_URL=$DISCORD_URL
         - BOT_NAME=$BOT_NAME
         - BOT_IMAGE_URL=$BOT_IMAGE_URL
+    volumes:
+      - ./astronaut:/opt/app          
+      - ./astronaut:/app/node_modules
+    restart: always
     environment:
       - BOT_NAME=$BOT_NAME
       - DISCORD_URL=$DISCORD_URL
