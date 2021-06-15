@@ -1,0 +1,74 @@
+version: '3.6'
+
+services:
+  own-cloud:
+     image: owncloud/server:10.7
+     restart: always
+     ports:
+       - 9000:8080
+     depends_on:
+       - own-data
+       - own-cache
+     environment:
+       - OWNCLOUD_DOMAIN=localhost:8080
+       - OWNCLOUD_DB_TYPE=mysql
+       - OWNCLOUD_DB_NAME=owncloud
+       - OWNCLOUD_DB_USERNAME=owncloud
+       - OWNCLOUD_DB_PASSWORD=owncloud
+       - OWNCLOUD_DB_HOST=db
+       - OWNCLOUD_ADMIN_USERNAME=admin
+       - OWNCLOUD_ADMIN_PASSWORD=admin
+       - OWNCLOUD_MYSQL_UTF8MB4=true
+       - OWNCLOUD_REDIS_ENABLED=true
+       - OWNCLOUD_REDIS_HOST=redis
+     healthcheck:
+       test: ["CMD", "/usr/bin/healthcheck"]
+       interval: 30s
+       timeout: 10s
+       retries: 5
+     volumes:
+       - files:/mnt/data
+
+  own-data:
+     image: webhippie/mariadb:latest
+     restart: always
+     environment:
+       - MARIADB_ROOT_PASSWORD=owncloud
+       - MARIADB_USERNAME=owncloud
+       - MARIADB_PASSWORD=owncloud
+       - MARIADB_DATABASE=owncloud
+       - MARIADB_MAX_ALLOWED_PACKET=128M
+       - MARIADB_INNODB_LOG_FILE_SIZE=64M
+     healthcheck:
+       test: ["CMD", "/usr/bin/healthcheck"]
+       interval: 30s
+       timeout: 10s
+       retries: 5
+     volumes:
+       - mysql:/var/lib/mysql
+       - backup:/var/lib/backup
+
+  own-cache:
+     image: webhippie/redis:latest
+     restart: always
+     environment:
+       - REDIS_DATABASES=1
+     healthcheck:
+       test: ["CMD", "/usr/bin/healthcheck"]
+       interval: 30s
+       timeout: 10s
+       retries: 5
+     volumes:
+       - redis:/var/lib/redis
+
+volumes:
+  db_data:
+    driver: local
+  files:
+    driver: local
+  mysql:
+    driver: local
+  backup:
+    driver: local
+  redis:
+    driver: local

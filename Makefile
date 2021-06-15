@@ -1,5 +1,13 @@
+dev:
+	docker-compose \
+		-f station-core.yaml \
+		-f station-base.yaml \
+		-f station-fuel.yaml \
+		up --build
+
 up-dev:
-	docker-compose -f docker-compose.dev.yaml up --build
+	make dev
 
 dev-up:
-	docker-compose -f docker-compose.dev.yaml up --build
+	make dev
+

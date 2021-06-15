@@ -1,0 +1,116 @@
+version: '3.6'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    configs:
+      - source: elastic_config
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTIC_PASSWORD: changeme
+      # Use single node discovery in order to disable production mode and avoid bootstrap checks.
+      # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
+      discovery.type: single-node
+      # Force publishing on the 'elk' overlay.
+      network.publish_host: _eth0_
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.12.0
+    ports:
+      - "5044:5044"
+      - "5000:5000"
+      - "9600:9600"
+    configs:
+      - source: logstash_config
+        target: /usr/share/logstash/config/logstash.yml
+      - source: logstash_pipeline
+        target: /usr/share/logstash/pipeline/logstash.conf
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.12.0
+    ports:
+      - "5601:5601"
+    configs:
+      - source: kibana_config
+        target: /usr/share/kibana/config/kibana.yml
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  metricbeat:
+    build:
+      context: ./devops/metricbeat
+      dockerfile: Dockerfile
+      args:
+        - ELK_VERSION=7.12.0
+    container_name: metricbeat-metricbeat-services
+    command: -e
+    environment:
+      - "WAIT_FOR_HOSTS=elasticsearch:9200 kibana:5601"
+      - "HOST_ELASTICSEARCH=elasticsearch:9200"
+      - "HOST_KIBANA=kibana:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - metricbeat
+  
+    # Specific container and configuration to monitor the HOST (filesystem, memory, processes,...)
+  metricbeat-host:
+    build:
+      context: ./devops/metricbeat
+      dockerfile: Dockerfile
+      args:
+        - ELK_VERSION=7.12.0
+        - METRICBEAT_FILE=metricbeat-host.yml
+    container_name: metricbeat-metricbeat-host
+    command: -system.hostfs=/hostfs
+    volumes:
+      - /proc:/hostfs/proc:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /:/hostfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - "WAIT_FOR_HOSTS=elasticsearch:9222 kibana:5666"
+      - "HOST_ELASTICSEARCH=elasticsearch:9222"
+      - "HOST_KIBANA=kibana:5666"
+    extra_hosts:
+      - "elasticsearch:172.17.0.1" # The IP of docker0 interface to access host from container
+      - "kibana:172.17.0.1" # The IP of docker0 interface to access host from container
+    network_mode: host # Mandatory to monitor HOST filesystem, memory, processes,...
+
+
+configs:
+  elastic_config:
+    file: ./devops/elasticsearch/config/elasticsearch.yml
+  logstash_config:
+    file: ./devops/logstash/config/logstash.yml
+  logstash_pipeline:
+    file: ./devops/logstash/pipeline/logstash.conf
+  kibana_config:
+    file: ./devops/kibana/config/kibana.yml
+  filebeat_config:
+    file: ./devops/filebeat/config/filebeat.yml
+
+volumes:
+  elasticsearch:
+    driver: local
+  filebeat_data:
+    driver: local
+
+networks:
+  metricbeat:
+    external:
+      name: metricbeat
+

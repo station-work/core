@@ -1,0 +1,70 @@
+version: '3.6'
+
+services:
+  hasura-data:
+    image: postgres:12
+    restart: always
+    volumes:
+    - db_data:/var/lib/postgresql/data
+    env_file: .env
+    environment:
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+  
+  hasura-core:
+    image: hasura/graphql-engine:v2.0.0-alpha.5
+    ports:
+    - "7000:8080"
+    depends_on:
+    - "hasura-data"
+    restart: always
+    env_file: .env
+    environment:
+      - HASURA_GRAPHQL_DATABASE_URL=$HASURA_GRAPHQL_DATABASE_URL
+      - HASURA_GRAPHQL_ENABLE_CONSOLE=$HASURA_GRAPHQL_ENABLE_CONSOLE # set to "false" to disable console
+      - HASURA_GRAPHQL_DEV_MODE=$HASURA_GRAPHQL_DEV_MODE
+      - HASURA_GRAPHQL_ENABLED_LOG_TYPES=$HASURA_GRAPHQL_ENABLED_LOG_TYPES
+      - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
+
+  zarya:
+    build:
+      context: ./zarya
+      dockerfile: Dockerfile.dev
+      args:
+        - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
+        - ENCRYPTION_KEY=$ENCRYPTION_KEY
+        - HASURA_APP_URL=$HASURA_APP_URL
+    ports:
+      - "8000:3000"
+    volumes:
+      - ./zarya:/usr/src/app
+      - ./error.log:/usr/src/app/error.log
+    env_file: .env
+    environment:
+      - HASURA_GRAPHQL_ADMIN_SECRET=$HASURA_GRAPHQL_ADMIN_SECRET
+      - ENCRYPTION_KEY=$ENCRYPTION_KEY
+      - HASURA_APP_URL=$HASURA_APP_URL
+    depends_on:
+      - 'hasura-core'
+
+  astronaut:
+    ports:
+      - "3000:3000"
+    depends_on:
+      - 'hasura-core'
+    env_file: .env
+    build:
+      context: ./astronaut
+      dockerfile: Dockerfile.dev
+      args:
+        - DISCORD_URL=$DISCORD_URL
+        - BOT_NAME=$BOT_NAME
+        - BOT_IMAGE_URL=$BOT_IMAGE_URL
+    volumes:
+      - ./astronaut:/opt/app          
+      - ./astronaut:/app/node_modules
+    restart: always
+    environment:
+      - BOT_NAME=$BOT_NAME
+      - DISCORD_URL=$DISCORD_URL
+      - BOT_IMAGE_URL=$BOT_IMAGE_URL
+
