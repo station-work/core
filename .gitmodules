@@ -1,3 +1,6 @@
 [submodule "zarya"]
 	path = zarya
 	url = https://github.com/station-work/zarya.git
+[submodule "astronaut"]
+	path = astronaut
+	url = https://github.com/station-work/astronaut
